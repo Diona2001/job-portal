@@ -1,0 +1,25 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\diona\\.gemini\\antigravity\\scratch\\job-portal\\backend\\wwwroot\\uploads\\resumes\\sample_resume.pdf",
+      "PackagePath": "staticwebassets\\uploads\\resumes\\sample_resume.pdf"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.JobPortal.API.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.JobPortal.API.props",
+      "PackagePath": "build\\JobPortal.API.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.JobPortal.API.props",
+      "PackagePath": "buildMultiTargeting\\JobPortal.API.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.JobPortal.API.props",
+      "PackagePath": "buildTransitive\\JobPortal.API.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

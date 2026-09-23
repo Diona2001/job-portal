@@ -1,0 +1,39 @@
+{
+  "Version": 1,
+  "Hash": "bfsCycH1aO+R31x3nAHtyY+Kw81y7v6QNh0cuIIxel4=",
+  "Source": "JobPortal.API",
+  "BasePath": "_content/JobPortal.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "JobPortal.API\\wwwroot",
+      "Source": "JobPortal.API",
+      "ContentRoot": "C:\\Users\\diona\\.gemini\\antigravity\\scratch\\job-portal\\backend\\wwwroot\\",
+      "BasePath": "_content/JobPortal.API",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "C:\\Users\\diona\\.gemini\\antigravity\\scratch\\job-portal\\backend\\wwwroot\\uploads\\resumes\\sample_resume.pdf",
+      "SourceId": "JobPortal.API",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\diona\\.gemini\\antigravity\\scratch\\job-portal\\backend\\wwwroot\\",
+      "BasePath": "_content/JobPortal.API",
+      "RelativePath": "uploads/resumes/sample_resume.pdf",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\resumes\\sample_resume.pdf"
+    }
+  ]
+}
