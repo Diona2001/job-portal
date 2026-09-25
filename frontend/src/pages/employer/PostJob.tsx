@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jobsApi } from '../../api/jobsApi';
+import { aiApi } from '../../api/aiApi';
 import { useToast } from '../../context/ToastContext';
 import { Button } from '../../components/common/Button';
 import { Briefcase, IndianRupee, MapPin, Sparkles } from 'lucide-react';
@@ -21,8 +22,41 @@ export const PostJob: React.FC = () => {
   const [applicationDeadline, setApplicationDeadline] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const { showToast } = useToast();
   const navigate = useNavigate();
+
+  const handleGenerateWithAi = async () => {
+    if (!title.trim()) {
+      showToast('Please enter a Job Title first so AI can generate the job specifications', 'info');
+      return;
+    }
+    setIsGeneratingAi(true);
+    try {
+      const res = await aiApi.generateJobDescription({
+        jobTitle: title,
+        experienceLevel,
+        workplaceType,
+        keySkillsHint: skills
+      });
+      if (res.success && res.data) {
+        setDescription(res.data.description);
+        setResponsibilities(res.data.responsibilities.replace(/\n/g, ' '));
+        setRequirements(res.data.requirements.replace(/\n/g, ' '));
+        if (res.data.suggestedSkills) {
+          setSkills(res.data.suggestedSkills);
+        }
+        if (res.data.benefits && !benefits) {
+          setBenefits(res.data.benefits);
+        }
+        showToast('AI successfully generated job description & requirements!', 'success');
+      }
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Error generating job details with AI', 'error');
+    } finally {
+      setIsGeneratingAi(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +122,30 @@ export const PostJob: React.FC = () => {
               placeholder="e.g. Senior ASP.NET Core & React Engineer"
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-primary-500 focus:border-primary-500"
             />
+          </div>
+
+          {/* AI Job Assistant Banner */}
+          <div className="bg-gradient-to-r from-indigo-50/80 via-purple-50/50 to-pink-50/30 p-4 rounded-2xl border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center space-x-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-sm shrink-0">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-900">AI Job Description Assistant</h4>
+                <p className="text-[11px] text-slate-500">
+                  Enter your Job Title above and let AI auto-generate description, responsibilities & requirements.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleGenerateWithAi}
+              disabled={isGeneratingAi}
+              className="inline-flex items-center justify-center text-xs font-bold bg-white text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50/60 border border-indigo-200 px-3.5 py-2 rounded-xl transition shadow-xs disabled:opacity-50 cursor-pointer shrink-0"
+            >
+              <Sparkles className="w-3.5 h-3.5 mr-1.5 text-indigo-600" />
+              {isGeneratingAi ? 'Generating...' : 'Auto-Generate with AI'}
+            </button>
           </div>
 
           {/* Job Type & Workplace & Experience */}

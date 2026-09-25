@@ -1,0 +1,70 @@
+﻿name: Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-ci:
+    name: Backend Build & Test (.NET 8)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet Packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore Dependencies
+        run: |
+          dotnet restore backend/JobPortal.API.csproj
+          dotnet restore backend.Tests/JobPortal.Tests.csproj
+
+      - name: Build Backend (Release)
+        run: |
+          dotnet build backend/JobPortal.API.csproj --configuration Release --no-restore
+          dotnet build backend.Tests/JobPortal.Tests.csproj --configuration Release --no-restore
+
+      - name: Execute Automated Unit Tests
+        run: |
+          dotnet test backend.Tests/JobPortal.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage"
+
+  frontend-ci:
+    name: Frontend Build & Type Check (React + Vite)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Type-Check & Bundle Build
+        working-directory: frontend
+        run: npm run build

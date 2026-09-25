@@ -1,0 +1,75 @@
+﻿version: "3.8"
+
+services:
+  # ==========================================
+  # ASP.NET Core 8 Web API Backend
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: jobportal-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+      - DatabaseProvider=Auto
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=JobPortalDb;User Id=sa;Password=Your_Strong_Password123!;TrustServerCertificate=True;Connect Timeout=5;
+      - GeminiSettings__ApiKey=${GEMINI_API_KEY:-}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    volumes:
+      - backend_uploads:/app/Uploads
+    networks:
+      - jobportal-network
+
+  # ==========================================
+  # React + Vite + Nginx Frontend
+  # ==========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: jobportal-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - jobportal-network
+
+  # ==========================================
+  # Microsoft SQL Server 2022
+  # ==========================================
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: jobportal-sqlserver
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Your_Strong_Password123!
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Your_Strong_Password123!' -Q 'SELECT 1' -C || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - jobportal-network
+
+volumes:
+  backend_uploads:
+  sqlserver_data:
+
+networks:
+  jobportal-network:
+    driver: bridge

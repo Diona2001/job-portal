@@ -6,6 +6,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { AppRouter } from './routes/AppRouter';
+import { AiChatbot } from './components/ai/AiChatbot';
 
 export const App: React.FC = () => {
   return (
@@ -19,6 +20,7 @@ export const App: React.FC = () => {
                 <AppRouter />
               </main>
               <Footer />
+              <AiChatbot />
             </div>
           </NotificationProvider>
         </ToastProvider>

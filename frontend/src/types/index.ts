@@ -195,3 +195,5 @@ export interface AdminDashboardStats {
   monthlyJobs: { month: string; count: number }[];
   applicationsByStatus: { status: string; count: number }[];
 }
+
+export * from './ai.types';

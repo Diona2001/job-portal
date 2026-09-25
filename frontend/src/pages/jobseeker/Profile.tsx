@@ -19,7 +19,13 @@ import {
   Phone,
   Mail,
   CheckCircle2,
+  Sparkles,
+  TrendingUp,
+  Bot,
 } from 'lucide-react';
+import { Modal } from '../../components/common/Modal';
+import { aiApi } from '../../api/aiApi';
+import { OptimizeProfileResponse } from '../../types';
 import { formatDate } from '../../utils/format';
 
 export const JobSeekerProfile: React.FC = () => {
@@ -31,6 +37,11 @@ export const JobSeekerProfile: React.FC = () => {
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isDeleteResumeModalOpen, setIsDeleteResumeModalOpen] = useState(false);
+
+  // AI Profile Polish
+  const [isOptimizingWithAi, setIsOptimizingWithAi] = useState(false);
+  const [isAiOptimizeModalOpen, setIsAiOptimizeModalOpen] = useState(false);
+  const [aiOptimizationResult, setAiOptimizationResult] = useState<OptimizeProfileResponse | null>(null);
 
   // Form fields
   const [fullName, setFullName] = useState('');
@@ -94,6 +105,39 @@ export const JobSeekerProfile: React.FC = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleOptimizeProfile = async () => {
+    setIsOptimizingWithAi(true);
+    try {
+      const res = await aiApi.optimizeProfile({
+        bio,
+        currentSkills: skills,
+        targetJobTitle: currentJobTitle || 'Software Engineer'
+      });
+      if (res.success && res.data) {
+        setAiOptimizationResult(res.data);
+        setIsAiOptimizeModalOpen(true);
+      }
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Error optimizing profile with AI', 'error');
+    } finally {
+      setIsOptimizingWithAi(false);
+    }
+  };
+
+  const handleApplyAiOptimization = () => {
+    if (!aiOptimizationResult) return;
+    if (aiOptimizationResult.enhancedBio) {
+      setBio(aiOptimizationResult.enhancedBio);
+    }
+    if (aiOptimizationResult.extractedSkills.length > 0) {
+      const existing = skills ? skills.split(',').map((s) => s.trim()) : [];
+      const combined = Array.from(new Set([...existing, ...aiOptimizationResult.extractedSkills])).filter(Boolean);
+      setSkills(combined.join(', '));
+    }
+    setIsAiOptimizeModalOpen(false);
+    showToast('AI suggestions applied! Click "Save Profile Changes" to persist.', 'success');
   };
 
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -406,14 +450,25 @@ export const JobSeekerProfile: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-            Professional Bio
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Professional Bio
+            </label>
+            <button
+              type="button"
+              onClick={handleOptimizeProfile}
+              disabled={isOptimizingWithAi}
+              className="inline-flex items-center text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-gradient-to-r from-indigo-50 to-purple-50 hover:bg-indigo-100/70 border border-indigo-200 px-3 py-1 rounded-xl transition cursor-pointer disabled:opacity-50"
+            >
+              <Sparkles className="w-3.5 h-3.5 mr-1.5 text-indigo-600" />
+              {isOptimizingWithAi ? 'Analyzing...' : 'AI Bio Polish & Skill Extractor'}
+            </button>
+          </div>
           <textarea
             rows={4}
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            placeholder="Write a concise overview of your technical background, achievements, and career goals..."
+            placeholder="Write a concise overview of your technical background, achievements, and career goals, or click 'AI Bio Polish' to auto-generate..."
             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-primary-500 focus:border-primary-500"
           ></textarea>
         </div>
@@ -424,6 +479,80 @@ export const JobSeekerProfile: React.FC = () => {
           </Button>
         </div>
       </form>
+
+      {/* AI Profile Polish Preview Modal */}
+      <Modal
+        isOpen={isAiOptimizeModalOpen}
+        onClose={() => setIsAiOptimizeModalOpen(false)}
+        title="AI Profile Optimization Suggestions"
+        maxWidth="lg"
+      >
+        <div className="space-y-5">
+          {aiOptimizationResult && (
+            <div className="space-y-4">
+              {/* Suggested Headline */}
+              <div className="bg-gradient-to-r from-indigo-50/70 to-purple-50/50 p-4 rounded-2xl border border-indigo-100">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                  Suggested Headline
+                </span>
+                <p className="text-sm font-extrabold text-slate-900">{aiOptimizationResult.suggestedHeadline}</p>
+              </div>
+
+              {/* Enhanced Bio */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Enhanced Executive Bio
+                </span>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs text-slate-700 leading-relaxed">
+                  {aiOptimizationResult.enhancedBio}
+                </div>
+              </div>
+
+              {/* Extracted Skills */}
+              {aiOptimizationResult.extractedSkills.length > 0 && (
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                    Extracted Technical Skills ({aiOptimizationResult.extractedSkills.length})
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {aiOptimizationResult.extractedSkills.map((s, idx) => (
+                      <span
+                        key={idx}
+                        className="text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-0.5 rounded-lg"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Improvement Tips */}
+              {aiOptimizationResult.improvementTips.length > 0 && (
+                <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl space-y-1.5 text-xs text-emerald-900">
+                  <span className="font-bold text-[11px] uppercase tracking-wider flex items-center">
+                    <TrendingUp className="w-3.5 h-3.5 mr-1 text-emerald-600" /> Resume & ATS Optimization Advice
+                  </span>
+                  <ul className="list-disc list-inside space-y-1 text-emerald-800">
+                    {aiOptimizationResult.improvementTips.map((tip, idx) => (
+                      <li key={idx}>{tip}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex justify-end space-x-3 pt-2">
+            <Button variant="outline" onClick={() => setIsAiOptimizeModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleApplyAiOptimization} leftIcon={<Sparkles className="w-4 h-4" />}>
+              Apply Suggestions to Profile
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Delete Resume Confirmation Dialog */}
       <ConfirmDialog

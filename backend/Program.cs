@@ -96,6 +96,8 @@ builder.Services.AddScoped<ISavedJobService, SavedJobService>();
 builder.Services.AddScoped<IInterviewService, InterviewService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IAiService, AiService>();
 
 // 6. Configure CORS for React frontend (dynamically supports any localhost port, e.g., 5173, 5174, etc.)
 builder.Services.AddCors(options =>

@@ -20,7 +20,12 @@ import {
   XCircle,
   Mail,
   Phone,
+  Sparkles,
+  TrendingUp,
+  Bot,
 } from 'lucide-react';
+import { aiApi } from '../../api/aiApi';
+import { JobMatchAnalysis } from '../../types';
 
 export const Candidates: React.FC = () => {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -42,7 +47,30 @@ export const Candidates: React.FC = () => {
   const [interviewNotes, setInterviewNotes] = useState('');
   const [isScheduling, setIsScheduling] = useState(false);
 
+  // AI Match Analysis Modal
+  const [isAiMatchModalOpen, setIsAiMatchModalOpen] = useState(false);
+  const [selectedCandidateMatch, setSelectedCandidateMatch] = useState<JobMatchAnalysis | null>(null);
+  const [isLoadingCandidateMatch, setIsLoadingCandidateMatch] = useState(false);
+  const [activeCandidateApp, setActiveCandidateApp] = useState<Application | null>(null);
+
   const { showToast } = useToast();
+
+  const handleOpenAiMatchModal = async (app: Application) => {
+    setActiveCandidateApp(app);
+    setIsAiMatchModalOpen(true);
+    setIsLoadingCandidateMatch(true);
+    setSelectedCandidateMatch(null);
+    try {
+      const res = await aiApi.getCandidateMatch(app.id);
+      if (res.success && res.data) {
+        setSelectedCandidateMatch(res.data);
+      }
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Error loading AI match analysis', 'error');
+    } finally {
+      setIsLoadingCandidateMatch(false);
+    }
+  };
 
   const fetchCandidates = async () => {
     setIsLoading(true);
@@ -236,6 +264,15 @@ export const Candidates: React.FC = () => {
                 </div>
 
                 <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAiMatchModal(app)}
+                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 hover:text-indigo-900 border border-indigo-200 text-xs font-bold inline-flex items-center space-x-1.5 transition hover:shadow-xs cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>AI Fit Score</span>
+                  </button>
+
                   <Button
                     variant="outline"
                     size="sm"
@@ -406,6 +443,107 @@ export const Candidates: React.FC = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* AI Candidate Match Modal */}
+      <Modal
+        isOpen={isAiMatchModalOpen}
+        onClose={() => setIsAiMatchModalOpen(false)}
+        title={`AI Fit Analysis: ${activeCandidateApp?.applicantName}`}
+        maxWidth="lg"
+      >
+        <div className="space-y-5">
+          {isLoadingCandidateMatch ? (
+            <div className="py-12 text-center space-y-3">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-indigo-600 border-t-transparent"></div>
+              <p className="text-sm font-semibold text-slate-600">Analyzing candidate semantic fit with AI...</p>
+            </div>
+          ) : selectedCandidateMatch ? (
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-indigo-50/70 to-purple-50/50 p-4 rounded-2xl border border-indigo-100 flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">Candidate Match Level</span>
+                  <h4 className="text-base font-extrabold text-slate-900">{selectedCandidateMatch.matchLevel}</h4>
+                </div>
+                <div className="text-right">
+                  <span className="text-3xl font-black text-indigo-700">{selectedCandidateMatch.matchPercentage}%</span>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                <div
+                  className={`h-3 rounded-full transition-all duration-700 ${
+                    selectedCandidateMatch.matchPercentage >= 75
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                      : selectedCandidateMatch.matchPercentage >= 50
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                      : 'bg-gradient-to-r from-amber-500 to-orange-500'
+                  }`}
+                  style={{ width: `${selectedCandidateMatch.matchPercentage}%` }}
+                ></div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                {/* Matched Skills */}
+                <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl space-y-2">
+                  <h5 className="text-xs font-bold text-emerald-900 uppercase tracking-wider">
+                    Matched Skills ({selectedCandidateMatch.matchingSkills.length})
+                  </h5>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedCandidateMatch.matchingSkills.map((s, idx) => (
+                      <span key={idx} className="text-[11px] font-semibold bg-emerald-100/80 text-emerald-800 px-2 py-0.5 rounded-md">
+                        ✓ {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Missing Skills */}
+                <div className="p-4 bg-amber-50/50 border border-amber-100 rounded-2xl space-y-2">
+                  <h5 className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+                    Skill Gaps ({selectedCandidateMatch.missingSkills.length})
+                  </h5>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedCandidateMatch.missingSkills.map((s, idx) => (
+                      <span key={idx} className="text-[11px] font-medium bg-amber-100/80 text-amber-800 px-2 py-0.5 rounded-md">
+                        + {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Strengths */}
+              {selectedCandidateMatch.strengths.length > 0 && (
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-1.5 text-xs text-slate-700">
+                  <h5 className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Key Candidate Strengths</h5>
+                  <ul className="list-disc list-inside space-y-1 text-slate-600">
+                    {selectedCandidateMatch.strengths.map((str, idx) => (
+                      <li key={idx}>{str}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Recommendations */}
+              {selectedCandidateMatch.recommendations.length > 0 && (
+                <div className="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 space-y-1.5 text-xs text-indigo-900">
+                  <h5 className="font-bold uppercase tracking-wider text-[11px] flex items-center">
+                    <TrendingUp className="w-3.5 h-3.5 mr-1 text-indigo-600" /> Hiring Insight
+                  </h5>
+                  <p className="leading-relaxed text-indigo-800">{selectedCandidateMatch.recommendations[0]}</p>
+                </div>
+              )}
+            </div>
+          ) : null}
+
+          <div className="flex justify-end pt-2">
+            <Button variant="outline" onClick={() => setIsAiMatchModalOpen(false)}>
+              Close
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

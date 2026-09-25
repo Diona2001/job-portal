@@ -1,6 +1,6 @@
-﻿# JobPortal - Enterprise Job Portal Web Application
+# JobPortal - Enterprise Job Portal Web Application
 
-A full-stack, enterprise-grade Job Portal built with **ASP.NET Core 8 Web API**, **React 18 (TypeScript + Vite + Tailwind CSS)**, and **Entity Framework Core**.
+A full-stack, enterprise-grade Job Portal built with **ASP.NET Core 8 Web API**, **React 18 (TypeScript + Vite + Tailwind CSS)**, **Entity Framework Core**, and built-in **AI/ML/LLM Intelligence** with **CI/CD + Docker Orchestration**.
 
 ---
 
@@ -8,59 +8,88 @@ A full-stack, enterprise-grade Job Portal built with **ASP.NET Core 8 Web API**,
 
 ```
 job-portal/
-├── backend/                  # ASP.NET Core 8 Web API
-│   ├── Controllers/          # RESTful API Controllers with Role-based Authorization
-│   ├── Data/                 # EF Core ApplicationDbContext & Seed Data Initializer
-│   ├── DTOs/                 # Request & Response Data Transfer Objects
-│   ├── Entities/             # Domain Model Entities (User, Job, Application, etc.)
-│   ├── Migrations/           # EF Core Migration files (SQL Server & SQLite compatible)
-│   ├── Services/             # JWT, Password Hasher, and Local/Cloud File Storage Services
-│   ├── Uploads/              # Local storage folder for candidate resumes
-│   ├── appsettings.json      # Configuration (Connection strings, JWT, Logging)
-│   └── Program.cs            # DI container, CORS, JWT Auth, Swagger, and Dual-DB setup
-├── frontend/                 # React 18 + TypeScript + Vite + Tailwind CSS
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                 # GitHub Actions CI: .NET build/test + React build
+│       └── docker.yml             # Docker build and container verification workflow
+├── backend/                      # ASP.NET Core 8 Web API
+│   ├── Controllers/              # RESTful API Controllers with Role-based Authorization & AI endpoints
+│   ├── Data/                     # EF Core ApplicationDbContext & Seed Data Initializer
+│   ├── DTOs/                     # Request & Response Data Transfer Objects (Auth, Jobs, Ai, etc.)
+│   ├── Entities/                 # Domain Model Entities (User, Job, Application, etc.)
+│   ├── Migrations/               # EF Core Migration files (SQL Server & SQLite compatible)
+│   ├── Services/                 # JWT, BCrypt, IFileStorageService, and IAiService
+│   ├── Uploads/                  # Local storage folder for candidate resumes
+│   ├── appsettings.json          # Configuration (Connection strings, JWT, GeminiSettings)
+│   ├── Dockerfile                # Multi-stage .NET 8 SDK + ASP.NET Core runtime image
+│   └── Program.cs                # DI container, CORS, JWT Auth, Swagger, and Dual-DB setup
+├── backend.Tests/                # Automated xUnit unit testing project
+│   ├── JobPortal.Tests.csproj    # Test project targeting net8.0
+│   └── AiServiceTests.cs         # Unit tests for matching algorithms, extraction & generators
+├── frontend/                     # React 18 + TypeScript + Vite + Tailwind CSS
 │   ├── src/
-│   │   ├── api/              # Axios HTTP client with JWT request interceptors
-│   │   ├── components/       # Reusable UI components (Navbar, Footer, Layouts)
-│   │   ├── context/          # React Context (AuthContext for user state)
-│   │   ├── pages/            # 16+ Application Pages across all user roles
-│   │   │   ├── admin/        # Admin Dashboard (Recharts), User/Company/Job moderation
-│   │   │   ├── employer/     # Employer Dashboard, Post Job, Manage Jobs, Pipeline & Interviews
-│   │   │   ├── seeker/       # Seeker Dashboard, Profile, Applications, Saved Jobs
-│   │   │   └── ...           # Landing, Find Jobs, Job Details, Login, Register
-│   │   ├── types/            # TypeScript interfaces matching backend DTOs
-│   │   ├── App.tsx           # Declarative React Router routing with Protected Routes
-│   │   └── main.tsx          # App entry point
+│   │   ├── api/                  # Axios HTTP client with JWT interceptor & AI endpoints
+│   │   ├── components/           # Reusable UI components (Navbar, Footer, Modals, Badges)
+│   │   ├── context/              # React Context (AuthContext for user state)
+│   │   ├── pages/                # 16+ Application Pages across all user roles
+│   │   │   ├── admin/            # Admin Dashboard (Recharts), User/Company/Job moderation
+│   │   │   ├── employer/         # Employer Dashboard, Post Job (AI Assistant), Candidates (AI Fit)
+│   │   │   ├── seeker/           # Seeker Dashboard, Profile (AI Polish), Applications, Saved Jobs
+│   │   │   └── ...               # Landing, Find Jobs, Job Details (AI Match & Cover Letter)
+│   │   ├── types/                # TypeScript interfaces matching backend DTOs & AI types
+│   │   ├── App.tsx               # Declarative React Router routing with Protected Routes
+│   │   └── main.tsx              # App entry point
+│   ├── nginx.conf                # Production Nginx SPA routing config
+│   ├── Dockerfile                # Multi-stage Node.js build + Nginx Alpine runtime
 │   └── package.json
+├── docker-compose.yml            # Full-stack orchestration (Backend + Frontend + SQL Server)
 └── README.md
 ```
 
 ---
 
-## Tech Stack
+## AI / ML / LLM Capabilities
 
-### Frontend
-- **Framework**: React 18 with TypeScript & Vite
-- **Styling**: Tailwind CSS with responsive, modern aesthetic
-- **Routing**: React Router DOM (v6) with role-guarded Route wrappers
-- **HTTP Client**: Axios with automated bearer token interception
-- **Forms & Validation**: Controlled forms with validation handling
-- **Data Visualization**: Recharts for dynamic visual dashboards
-- **Icons**: Lucide React
+The portal features a **Dual-Mode AI Engine**:
+1. **Google Gemini LLM Integration**: Generates deep generative responses when `GeminiSettings:ApiKey` (or `GEMINI_API_KEY` env var) is provided.
+2. **Built-in Local Heuristic NLP Engine**: Operates natively when no API key is configured or offline, using TF-IDF vector cosine similarity, a taxonomy of 120+ modern tech skills, and structured templates.
 
-### Backend
-- **Framework**: ASP.NET Core 8 Web API
-- **ORM**: Entity Framework Core 8.0
-- **Database Engine**: Microsoft SQL Server with automatic plug-and-play fallback to SQLite
-- **Security & Auth**: JWT (JSON Web Tokens) with HMAC-SHA256 & BCrypt password hashing
-- **File Storage**: Clean `IFileStorageService` abstraction supporting Local Disk & Cloud S3
-- **Documentation**: Swagger / OpenAPI (Swashbuckle 6.6.2)
+### Key AI Features:
+- **Real-Time Job Match & Gap Analysis**: Calculates candidate-to-job compatibility score (0-100%), displays matching skills (green), missing skills (amber), and delivers actionable recommendations directly in `JobDetails.tsx`.
+- **AI Cover Letter Auto-Drafter**: Inside the job application modal, candidates can generate a tailored cover letter customized by tone ("Professional", "Confident", "Enthusiastic").
+- **AI Job Description Assistant**: In `PostJob.tsx`, employers enter a title and experience level to auto-generate a comprehensive description, responsibilities, requirements, and recommended skills tags.
+- **AI Profile Polish & Skill Extractor**: In `Profile.tsx`, candidates can enhance their executive summary, auto-extract industry-standard skill tags, and receive resume ATS advice.
+- **AI Candidate Fit Analysis**: In `Candidates.tsx`, employers review applicants with an instant AI Fit score and inspect candidate strengths and skill gaps before scheduling interviews.
+- **Interactive AI Career Chatbot**: Accessible globally via a floating assistant drawer (`AiChatbot.tsx`). Answers career questions, advises on resume ATS optimizations, runs interview preparation drills, and performs conversational job searches that render interactive job cards with direct application links.
+
+---
+
+## CI/CD Pipeline & Containerization
+
+### GitHub Actions Workflows (`.github/workflows/`)
+- **`ci.yml`**:
+  - Automatically triggered on `push` and `pull_request` to `main`, `master`, and `develop`.
+  - **Backend Job**: Sets up .NET 8 SDK, restores dependencies, builds in Release mode, and runs automated unit tests with code coverage collection.
+  - **Frontend Job**: Sets up Node.js 20, caches npm dependencies, performs strict TypeScript type-checking, and bundles production assets.
+- **`docker.yml`**:
+  - Verifies multi-stage Docker builds for both backend and frontend images.
+
+### Running with Docker Compose
+To spin up the entire production-style stack (Web API, React + Nginx, and Microsoft SQL Server 2022):
+
+```bash
+docker-compose up --build
+```
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:5000`
+- Swagger UI: `http://localhost:5000/swagger`
+- SQL Server: `localhost:1433`
 
 ---
 
 ## Ready-to-Use Demo Accounts
 
-The login page (`/login`) includes **1-Click Quick Demo Login** buttons for instant access:
+The login page (`/login`) includes **1-Click Quick Demo Login** buttons:
 
 | Role | Email | Password | Details |
 | :--- | :--- | :--- | :--- |
@@ -68,102 +97,40 @@ The login page (`/login`) includes **1-Click Quick Demo Login** buttons for inst
 | **Employer** | `arun@techcorp.in` | `Password@123` | Hiring manager at *TechCorp Solutions* (Bangalore) |
 | **Job Seeker** | `rahul.sharma@example.com` | `Password@123` | Senior Full-Stack Engineer with active applications |
 
-*Additional seeded accounts include `priya.patel@example.com`, `amit.verma@example.com`, and employers at `FinScale Systems`, `CloudNative Bharat`, and `Malabar Digital`.*
-
 ---
 
-## Getting Started
+## Running Locally for Development
 
-### Prerequisites
-- **.NET 8 SDK** (verify with `dotnet --version`)
-- **Node.js 18+** & **npm** (verify with `node -v` and `npm -v`)
-
----
-
-### 1. Running the Backend
-
-Navigate to the `backend` folder:
+### 1. Running Backend & Unit Tests
 ```bash
+# Set .NET path if needed
+$env:DOTNET_ROOT = "$env:USERPROFILE\.dotnet"; $env:Path = "$env:USERPROFILE\.dotnet;" + $env:Path
+
+# Run automated unit tests
+dotnet test backend.Tests/JobPortal.Tests.csproj
+
+# Run backend API
 cd backend
-```
-
-Restore dependencies and run:
-```bash
 dotnet run --urls "http://localhost:5000"
 ```
 
-The API will automatically:
-1. Detect whether Microsoft SQL Server is active. If unreachable, it cleanly uses SQLite (`jobportal.db`) without throwing errors.
-2. Apply pending EF Core migrations.
-3. Seed default admin, companies, 20+ realistic Indian tech jobs, job seeker profiles, applications, timeline histories, interviews, and notifications.
-4. Host Swagger UI at: **`http://localhost:5000/swagger`**
-
-#### Connecting to your own Microsoft SQL Server
-Update `ConnectionStrings:DefaultConnection` in `backend/appsettings.json`:
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=YOUR_SERVER;Database=JobPortalDb;User Id=sa;Password=YOUR_PASSWORD;TrustServerCertificate=True;"
-},
-"DatabaseProvider": "SqlServer"
-```
-
-To run migrations manually against SQL Server:
-```bash
-dotnet ef database update --connection "Server=YOUR_SERVER;Database=JobPortalDb;TrustServerCertificate=True;Trusted_Connection=True;"
-```
-
----
-
-### 2. Running the Frontend
-
-Navigate to the `frontend` folder:
+### 2. Running Frontend
 ```bash
 cd frontend
-```
-
-Install dependencies and start the Vite dev server:
-```bash
 npm install
 npm run dev
 ```
-
-Open your browser at: **`http://localhost:5173`**
-
----
-
-## Key Features by Role
-
-### 🌐 Public & Job Search
-- **Landing Page**: Hero search bar, live market metrics, trending categories, featured jobs, and partner company logos.
-- **Find Jobs**: Filter by search keyword, location, job type (FullTime, PartTime, Contract, Internship), workplace type (Onsite, Remote, Hybrid), and experience level.
-- **Job Details**: Rich descriptions, responsibilities, requirements, salary badges, company profile preview, and direct resume upload modal.
-
-### 👤 Job Seeker
-- **Dashboard**: Quick metrics (applied jobs, shortlisted, interviews, saved jobs) and recent activity stream.
-- **Profile Management**: Professional bio, phone, address, skills tags, portfolio link, LinkedIn URL, GitHub URL, and PDF/DOCX resume file uploader.
-- **My Applications**: Visual status badges (`Applied`, `Reviewing`, `Shortlisted`, `InterviewScheduled`, `Rejected`, `Hired`) with historical feedback notes.
-- **Saved Jobs**: Quick bookmarking to save jobs for later review.
-- **Notifications**: Real-time updates when an employer updates application status or schedules an interview.
-
-### 🏢 Company / Employer
-- **Company Profile**: Brand logo, tagline, company size, industry, website, and company description.
-- **Post & Edit Jobs**: Comprehensive job creation with salary range, benefits, skills list, application deadlines, and workplace settings.
-- **My Jobs**: Manage posted job listings with active/closed status toggles.
-- **Candidate Pipeline**: Filter candidates by job, review applicant profiles, download attached resumes, update application status with custom notes, and schedule interviews with date/time and meeting links.
-- **Dashboard Analytics**: Visual bar and line charts (Recharts) showing job post performance, applicant trends, and upcoming interviews.
-
-### 🛡️ Platform Admin
-- **Platform Analytics**: Total users, total jobs, total applications, and active platform companies with Recharts visualizations.
-- **User Management**: Search users by name or email, filter by role, and toggle active/inactive account status.
-- **Company Verification**: Review employer profiles and toggle company verification badges.
-- **Job Moderation**: Inspect and moderate all job postings across the entire platform.
+Open **`http://localhost:5173`** (or `http://localhost:5174` if port is occupied; both are supported by CORS dynamically).
 
 ---
 
-## Automated Verification Suite
+## Automated Verification
 
-An automated Python test suite is included in the project to verify all 14 end-to-end workflows (auth, job filtering, posting, duplicate prevention, candidate status changes, notifications, and admin moderation):
-
-```bash
-python test_portal.py
-```
+1. **AI Endpoints Test Suite**:
+   ```bash
+   python test_ai_portal.py
+   ```
+2. **Core Portal Regression Test Suite**:
+   ```bash
+   python test_portal.py
+   ```

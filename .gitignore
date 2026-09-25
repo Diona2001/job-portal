@@ -1,0 +1,44 @@
+# .NET / C# Build Artifacts
+**/bin/
+**/obj/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.sqlite-shm
+*.sqlite-wal
+
+# Uploaded Resumes and Files (keep directories with .gitkeep)
+backend/wwwroot/uploads/resumes/*
+!backend/wwwroot/uploads/resumes/.gitkeep
+backend/Uploads/*
+!backend/Uploads/.gitkeep
+
+# Node & Frontend
+**/node_modules/
+**/dist/
+**/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment and Secrets
+*.env
+*.env.local
+*.env.*.local
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+[Dd]esktop.ini
+.DS_Store
