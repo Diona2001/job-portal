@@ -74,30 +74,9 @@ The portal features a **Dual-Mode AI Engine**:
 - **`docker.yml`**:
   - Verifies multi-stage Docker builds for both backend and frontend images.
 
-### Running with Docker Compose
-To spin up the entire production-style stack (Web API, React + Nginx, and Microsoft SQL Server 2022):
 
-```bash
-docker-compose up --build
-```
-- Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:5000`
-- Swagger UI: `http://localhost:5000/swagger`
-- SQL Server: `localhost:1433`
 
----
 
-## Ready-to-Use Demo Accounts
-
-The login page (`/login`) includes **1-Click Quick Demo Login** buttons:
-
-| Role | Email | Password | Details |
-| :--- | :--- | :--- | :--- |
-| **Admin** | `admin@jobportal.com` | `Admin@123` | System administrator with full moderation and analytics |
-| **Employer** | `arun@techcorp.in` | `Password@123` | Hiring manager at *TechCorp Solutions* (Bangalore) |
-| **Job Seeker** | `rahul.sharma@example.com` | `Password@123` | Senior Full-Stack Engineer with active applications |
-
----
 
 ## Running Locally for Development
 
@@ -124,13 +103,3 @@ Open **`http://localhost:5173`** (or `http://localhost:5174` if port is occupied
 
 ---
 
-## Automated Verification
-
-1. **AI Endpoints Test Suite**:
-   ```bash
-   python test_ai_portal.py
-   ```
-2. **Core Portal Regression Test Suite**:
-   ```bash
-   python test_portal.py
-   ```
